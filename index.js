@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.json());
 
-// Creating a user
+// Create a user
 app.post("/api/v1/create/user", async (req, res) => {
     try {
         const {firstName, lastName, email, password} = req.body;
@@ -42,7 +42,7 @@ app.post("/api/v1/create/user", async (req, res) => {
         })
     }
 });
-// Getting all users
+// Get all users
 app.get("/api/v1/fetch/users", async (req, res) => {
     try {
         const allUsers = await prisma.user.findMany({});
@@ -66,7 +66,7 @@ app.get("/api/v1/fetch/users", async (req, res) => {
         })
     }
 });
-// Getting a user
+// Get a user
 app.get("/api/v1/fetch/user/:id", async (req, res) => {
     try {
         const user_id = req.params.id;
@@ -92,7 +92,7 @@ app.get("/api/v1/fetch/user/:id", async (req, res) => {
         })
     }
 });
-// Updating a user 
+// Update a user 
 app.patch("/api/v1/update/user/:id", async (req, res) => {
     try {
         const user_id = req.params.id;
@@ -123,7 +123,7 @@ app.patch("/api/v1/update/user/:id", async (req, res) => {
         })
     }
 });
-// Deleting a user
+// Delete a user
 app.delete("/api/v1/remove/user/:id", async (req, res) => {
     try {
         const user_id = req.params.id;
@@ -145,7 +145,7 @@ app.delete("/api/v1/remove/user/:id", async (req, res) => {
     }
 })
 
-// Creating a post
+// Create a post
 app.post("/api/v1/create/post", async (req, res) => {
     try {
         const { user_id, title, description } = req.body;
@@ -172,7 +172,7 @@ app.post("/api/v1/create/post", async (req, res) => {
         })
     }
 });
-// Getting all post
+// Get all post
 app.get("/api/v1/fetch/posts", async (req, res) => {
     try {
         const allPosts = await prisma.Post.findMany({
@@ -189,6 +189,11 @@ app.get("/api/v1/fetch/posts", async (req, res) => {
             },
             orderBy: {
                 id: 'desc'
+            },
+            where: {
+                comment_count: {
+                    gt: 0
+                }
             }
         });
 
@@ -207,7 +212,7 @@ app.get("/api/v1/fetch/posts", async (req, res) => {
         })       
     }
 });
-// Getting a post
+// Get a post
 app.get("/api/v1/fetch/post/:id", async (req, res) => {
     try {
         const post_id = req.params.id
@@ -242,7 +247,7 @@ app.get("/api/v1/fetch/post/:id", async (req, res) => {
         })
     }
 });
-// Updating a post
+// Update a post
 app.patch("/api/v1/update/post/:id", async (req, res) => {
     try {
         const post_id = req.params.id;
@@ -272,7 +277,7 @@ app.patch("/api/v1/update/post/:id", async (req, res) => {
         }
     }
 });
-// Deleting a post
+// Delete a post
 app.delete("/api/v1/remove/post/:id", async (req, res) => {
     try {
         const post_id = req.params.id;
@@ -411,9 +416,20 @@ app.patch("/api/v1/comment/update/:id", async (req, res) => {
     }
 });
 // Delete a comment
-app.delete("/api/v1/remove/comment/:id", async (req, res) => {
+app.delete("/api/v1/remove/comment/:post_id/:comment_id", async (req, res) => {
     try {
-        const comment_id = req.params.id;
+        const post_id = req.params.post_id;
+        const comment_id = req.params.comment_id;
+        await prisma.post.update({
+            where: {
+                id: Number(post_id)
+            },
+            data: {
+                comment_count: {
+                    decrement: 1
+                }
+            }
+        });
         await prisma.comment.delete({
             where: {
                 id: comment_id
